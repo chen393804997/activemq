@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    data-username: root
+    data-password: 666666
+    url: jdbc:mysql://127.0.0.1:3306/newtmapp?useUnicode=true&autoReconnect=true&failOverReadOnly=false&useSSL=false
+  activemq:
+    user: admin
+    password: admin
+    broker-url: tcp://127.0.0.1:61616
+    pool:
+      enabled: true
+      max-connections: 100
+
+queueName: czw.queue
+topicName: czw.topic
