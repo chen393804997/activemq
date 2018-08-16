@@ -15,7 +15,6 @@ import javax.jms.Topic;
  **/
 public class ActiveMqFactory {
 
-
     private static String USER_NAME = ActiveMQConnection.DEFAULT_USER;
 
     private static String PASSWORD = ActiveMQConnection.DEFAULT_PASSWORD;
@@ -24,9 +23,9 @@ public class ActiveMqFactory {
 
     private static ActiveMQConnectionFactory connectionFactory = null;
 
-    private static Session session = null;
+    private static ThreadLocal threadLocalSession = new ThreadLocal();
 
-    private static Connection connection = null;
+    private static ThreadLocal threadLocalConnection = new ThreadLocal();
 
     public static ActiveMQConnectionFactory getActiveMQConnectionFactory(){
         if (connectionFactory == null) {
@@ -49,11 +48,19 @@ public class ActiveMqFactory {
         //1.创建工厂
         ActiveMQConnectionFactory activeMQConnectionFactory = getActiveMQConnectionFactory();
         //2.创建连接
-        connection = activeMQConnectionFactory.createConnection();
+        Connection connection = (Connection) threadLocalConnection.get();
+        if (connection == null){
+            connection = activeMQConnectionFactory.createConnection();
+            threadLocalConnection.set(connection);
+        }
         //3.开启连接
         connection.start();
         //4.获取session
-        session = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
+        Session session = (Session) threadLocalSession.get();
+        if (session == null){
+            session = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
+            threadLocalSession.set(session);
+        }
         return session;
     }
 
@@ -90,13 +97,14 @@ public class ActiveMqFactory {
      * @throws Exception
      */
     public static void closeAllSocket() throws Exception{
+        Session session = (Session) threadLocalSession.get();
         if (session != null){
             session.close();
         }
+        Connection connection = (Connection) threadLocalConnection.get();
         if (connection != null){
             connection.close();
         }
     }
-
 
 }
